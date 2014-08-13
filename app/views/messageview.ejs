@@ -1,0 +1,48 @@
+<html ng-app="chatApp">
+<head>
+    <title>Eiffel Chat App</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel= "stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.0/css/bootstrap.min.css">
+
+</head>
+<body>
+
+<script src='//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js'></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.10/angular.min.js"></script>
+
+
+<script src='js/app.js'></script>
+
+<div class="container">
+    <h1>User Manager</h1>
+    <br>
+    <div class="page"></div>
+
+
+
+    <div ng-controller="ChatCtrl">
+        <div my-user-name></div>
+        <h1> Chat </h1>
+        <div id="chatWrap">
+            <p ng-repeat="msg in msgs track by $index">{{msg.body}}  {{msg.username}}</p>
+        </div>
+        <form ng-submit="sendMsg()" action="">
+            <input type="text" ng-model="msg.text">
+        </form>
+
+
+
+        <div>
+            <h1> User Name</h1>
+            <form ng-submit="setUser()" action="">
+                <input type="text" ng-model="user.name">
+            </form>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
+
+
