@@ -1,0 +1,77 @@
+#!/usr/bin/env node
+var debug = require('debug')('eiffel-chat');
+var app = require('../app');
+var path = require('path')
+    , rootPath = path.normalize(__dirname + '/..')
+
+app.set('port', process.env.PORT || 3000);
+
+var server = app.listen(app.get('port'), function() {
+  debug('Express server listening on port ' + server.address().port);
+});
+
+
+var fs = require('fs');
+
+var config = require('../config/config')['development'];
+// Load configurations
+// if test env, load example file
+var env = process.env.NODE_ENV || 'development'
+    , mongoose = require('mongoose');
+console.log(env);
+// Bootstrap db connection
+mongoose.connect(config.db);
+
+// Bootstrap models
+var models_path = rootPath+'/models';
+fs.readdirSync(models_path).forEach(function (file) {
+    require(models_path+'/'+file)
+});
+
+//Load db-fixtures aka models.
+require('../config/db-fixture')();
+
+// Socket IO Server
+var socketIO = require('socket.io').listen(server);
+global.socketIO = socketIO;
+
+
+
+var messages = require('../controllers/messages');
+
+//socketIO.set("transports", ["xhr-polling"]);
+socketIO.sockets.on('connection', function (socket) {
+
+
+    socket.on('message:create', function(data, callback){
+        var address = socket.handshake.address;
+        userip = address.address + ':' + address.port;
+        data.userip = userip;
+        messages.socketiocreate(data, function(json){
+            //console.log("client sent this:", data);
+            console.log("returned by server:", json);
+            socket.emit('message:received', json);
+            socket.broadcast.emit('message:received', json);
+
+        });
+    });
+
+    socket.on('messages:read', function(data,callback){
+        messages.socketiolist(function(err, list){
+            if(err === null){
+                socket.emit('messages:read', list);
+            } else {
+                socket.emit('messages:read', err);
+            }
+        })
+    });
+
+    socket.on('client-side event', function(data, callback){
+        console.log(data);
+    });
+
+    socket.on('disconnect', function () {
+    });
+
+
+});
